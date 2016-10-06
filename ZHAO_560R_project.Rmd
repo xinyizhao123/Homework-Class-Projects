@@ -1,0 +1,220 @@
+BIOS 560R Final Project
+========================================================
+#### Xinyi Zhao, MPH Candidate
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, error=FALSE}
+# Set the working directory
+#setwd("H:/Spring 2015/R/project")
+
+# Load the package
+library(ggplot2)
+library(knitr)
+
+# Read the data
+proj <- read.csv("project560Rdata.csv", stringsAsFactors = FALSE)
+
+# Obtain the sample size
+nobs <- length(proj$id)
+```
+## 1. Exploratory Data Analysis
+
+### 1.1 Descriptive Statistics
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+## Obtain frequency and percentage for dichotomous variables
+# CHD
+fq_chd <- as.vector(table(proj$chd))
+tb_chd <- as.vector(round(prop.table(table(proj$chd))*100, digits=2))
+# CAT
+fq_cat <- as.vector(table(proj$cat))
+tb_cat <- as.vector(round(prop.table(table(proj$cat))*100, digits=2))
+# SMK
+fq_smk <- as.vector(table(proj$smk))
+tb_smk <- as.vector(round(prop.table(table(proj$smk))*100, digits=2))
+# ECG
+fq_ecg <- as.vector(table(proj$ecg))
+tb_ecg <- as.vector(round(prop.table(table(proj$ecg))*100, digits=2))
+# HPT
+fq_hpt <- as.vector(table(proj$hpt))
+tb_hpt <- as.vector(round(prop.table(table(proj$hpt))*100, digits=2))
+
+## Obtain mean and std for continuous variables
+# AGE
+m_age <- format(round(c(mean(proj$age, na.rm = TRUE)), digits=2), nsmall=2)
+sd_age <- format(round(c(sd(proj$age, na.rm = TRUE)), digits=2), nsmall=2)
+# CHL
+m_chl <- format(round(c(mean(proj$chl, na.rm = TRUE)), digits=2), nsmall=2)
+sd_chl <- format(round(c(sd(proj$chl, na.rm = TRUE)), digits=2), nsmall=2)
+# DBP
+m_dbp <- format(round(c(mean(proj$dbp, na.rm = TRUE)), digits=2), nsmall=2)
+sd_dbp <- format(round(c(sd(proj$dbp, na.rm = TRUE)), digits=2), nsmall=2)
+# SBP
+m_sbp <- format(round(c(mean(proj$sbp, na.rm = TRUE)), digits=2), nsmall=2)
+sd_sbp <- format(round(c(sd(proj$sbp, na.rm = TRUE)), digits=2), nsmall=2)
+
+## Create a summary table for all variables
+# Create a matrix with column names
+sumstat <- matrix(nrow = 9, ncol = 5)
+colnames(sumstat) <- c("Characteristic", "Frequency", "%", "Mean", "SD")
+
+# Fill in relevent information for each column
+sumstat[, 1] <- c("Age (years)", "Cholesterol (mg/dL)", "Diastolic blood pressure (mmHg)", 
+                  "Systolic blood pressure (mmHg)", "Coronary heart disease", 
+                  "Normal catecholamine level", "Ever smoked", 
+                  "Electrocardiogram abnormality", "High blood pressure")
+sumstat[, 2] <- c("        ", "        ", "        ", "        ", 
+                  fq_chd[2], fq_cat[2], fq_smk[2], fq_ecg[2], fq_hpt[2])
+sumstat[, 3] <- c("        ", "        ", "        ", "        ", 
+                  tb_chd[2], tb_cat[2], tb_smk[2], tb_ecg[2], tb_hpt[2])
+sumstat[, 4] <- c(m_age, m_chl, m_dbp, m_sbp, 
+                  "        ", "        ", "        ", "        ", "        ")
+sumstat[, 5] <- c(sd_age, sd_chl, sd_dbp, sd_sbp, 
+                  "        ", "        ", "        ", "        ", "        ")
+# Display the table
+kable(sumstat, align=c("l", "c", "c", "r", "r"), caption="Table 1. Characteristics for participants in the prospective study of white males in Georgia")
+```
+
+
+### 1.2 Exploratory Graphics
+```{r, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE, fig.cap = "Figure 1. Association between cholesterol (mg/dL) and age in years"}
+# Create a scatter plot for the main exposure and outcome
+sct <- ggplot(proj, aes(x=age, y=chl)) + geom_point(size=3.5, shape=20) + 
+       ylab("Cholesterol (mg/dL)") + xlab("Age (years)") + stat_smooth() +
+       ggtitle("Figure 1. Association between cholesterol (mg/dL) and age in years")
+sct
+```
+
+
+
+## 2. Univariate Data Analysis
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+## Build simple logistic models for all potential predictors
+## and extract odds ratio and confidence intervals
+# AGE
+u_age <- glm(chd ~ age, data = proj, family = "binomial")
+OR_u_age <- format(round(exp(u_age$coef[2]), digits = 2), nsmall=2)
+CI_u_age <- confint(u_age)
+OR_CI_u_age <- format(round(exp(CI_u_age[2, ]), digits = 2), nsmall=2)
+# CHL
+u_chl <- glm(chd ~ chl, data = proj, family = "binomial")
+OR_u_chl <- format(round(exp(u_chl$coef[2]), digits = 2), nsmall=2)
+CI_u_chl <- confint(u_chl)
+OR_CI_u_chl <- format(round(exp(CI_u_chl[2, ]), digits = 2), nsmall=2)
+# DPB
+u_dbp <- glm(chd ~ dbp, data = proj, family = "binomial")
+OR_u_dbp <- format(round(exp(u_dbp$coef[2]), digits = 2), nsmall=2)
+CI_u_dbp <- confint(u_dbp)
+OR_CI_u_dbp <- format(round(exp(CI_u_dbp[2, ]), digits = 2), nsmall=2)
+# SBP
+u_sbp <- glm(chd ~ sbp, data = proj, family = "binomial")
+OR_u_sbp <- format(round(exp(u_sbp$coef[2]), digits = 2), nsmall=2)
+CI_u_sbp <- confint(u_sbp)
+OR_CI_u_sbp <- format(round(exp(CI_u_sbp[2, ]), digits = 2), nsmall=2)
+# CAT
+u_cat <- glm(chd ~ cat, data = proj, family = "binomial")
+OR_u_cat <- format(round(exp(u_cat$coef[2]), digits = 2), nsmall=2)
+CI_u_cat <- confint(u_cat)
+OR_CI_u_cat <- format(round(exp(CI_u_cat[2, ]), digits = 2), nsmall=2)
+# SMK
+u_smk <- glm(chd ~ smk, data = proj, family = "binomial")
+OR_u_smk <- format(round(exp(u_smk$coef[2]), digits = 2), nsmall=2)
+CI_u_smk <- confint(u_smk)
+OR_CI_u_smk <- format(round(exp(CI_u_smk[2, ]), digits = 2), nsmall=2)
+# ECG
+u_ecg <- glm(chd ~ ecg, data = proj, family = "binomial")
+OR_u_ecg <- format(round(exp(u_ecg$coef[2]), digits = 2), nsmall=2)
+CI_u_ecg <- confint(u_ecg)
+OR_CI_u_ecg <- format(round(exp(CI_u_ecg[2, ]), digits = 2), nsmall=2)
+# HPT
+u_hpt <- glm(chd ~ hpt, data = proj, family = "binomial")
+OR_u_hpt <- format(round(exp(u_hpt$coef[2]), digits = 2), nsmall=2)
+CI_u_hpt <- confint(u_hpt)
+OR_CI_u_hpt <- format(round(exp(CI_u_hpt[2, ]), digits = 2), nsmall=2)
+
+## Create a table for univariate regression results
+# Create a matrix with column names
+uni <- matrix(nrow = 8, ncol = 4)
+colnames(uni) <- c("Predictor", "Odds Ratio", "Lower 95% CI Limit", "Upper 95% CI Limit")
+
+# Fill in relevent information for each column
+uni[, 1] <- c("Age (years)", "Cholesterol (mg/dL)", "Diastolic blood pressure (mmHg)", 
+              "Systolic blood pressure (mmHg)", "Normal catecholamine level", "Ever smoked", 
+              "Electrocardiogram abnormality", "High blood pressure")
+uni[, 2] <- c(OR_u_age, OR_u_chl, OR_u_dbp, OR_u_sbp, OR_u_cat, OR_u_smk, OR_u_ecg, OR_u_hpt)
+uni[, 3] <- c(OR_CI_u_age[1], OR_CI_u_chl[1], OR_CI_u_dbp[1], OR_CI_u_sbp[1], OR_CI_u_cat[1],
+              OR_CI_u_smk[1], OR_CI_u_ecg[1], OR_CI_u_hpt[1])
+uni[, 4] <- c(OR_CI_u_age[2], OR_CI_u_chl[2], OR_CI_u_dbp[2], OR_CI_u_sbp[2], OR_CI_u_cat[2],
+              OR_CI_u_smk[2], OR_CI_u_ecg[2], OR_CI_u_hpt[2])
+
+# Display the table
+kable(uni, align=c("l", "c", "c", "c"), caption="Table 2. Bivariate associations between coronary heart disease and participants characteristics")
+```
+
+
+## 3. Multivariate Data Analysis
+
+### 3.1 Multivariate Regression Parameters
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+## Build a multiple logistic model for SMK, CAT, ECG and HPT
+## and extract odds ratio and confidence intervals
+m <- glm(chd ~ smk + cat + ecg + hpt, data = proj, family = "binomial")
+OR_m_CI <- exp(confint(m))
+# SMK
+OR_m_smk <- format(round(exp(m$coef[2]), digits = 2), nsmall=2)
+OR_CI_m_smk <- format(round(OR_m_CI[2, ], digits = 2), nsmall=2)
+# CAT
+OR_m_cat <- format(round(exp(m$coef[3]), digits = 2), nsmall=2)
+OR_CI_m_cat <- format(round(OR_m_CI[3, ], digits = 2), nsmall=2)
+# ECG
+OR_m_ecg <- format(round(exp(m$coef[4]), digits = 2), nsmall=2)
+OR_CI_m_ecg <- format(round(OR_m_CI[4, ], digits = 2), nsmall=2)
+# HPT
+OR_m_hpt <- format(round(exp(m$coef[5]), digits = 2), nsmall=2)
+OR_CI_m_hpt <- format(round(OR_m_CI[5, ], digits = 2), nsmall=2)
+
+## Create a table for multivariate regression results
+# Create a matrix with column names
+multi <- matrix(nrow = 4, ncol = 4)
+colnames(multi) <- c("Covariate", "Odds Ratio", "Lower 95% CI Limit", "Upper 95% CI Limit")
+
+# Fill in relevent information for each column
+multi[, 1] <- c("Ever smoked", "Normal catecholamine level", "Electrocardiogram abnormality", "High blood pressure")
+multi[, 2] <- c(OR_m_smk, OR_m_cat, OR_m_ecg, OR_m_hpt)
+multi[, 3] <- c(OR_CI_m_smk[1], OR_CI_m_cat[1], OR_CI_m_ecg[1], OR_CI_m_hpt[1])
+multi[, 4] <- c(OR_CI_m_smk[2], OR_CI_m_cat[2], OR_CI_m_ecg[2], OR_CI_m_hpt[2])
+
+# Display the table
+kable(multi, align=c("l", "c", "c", "c"), caption="Table 3. Multivariate association between coronary heart disease and the set of covariates")
+```
+
+### 3.2 Multivariate Regression Graphics
+```{r figcap, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE, fig.cap="Figure 2. Odds ratios with 95% confidence intervals for association between coronary heart disease and the set of covariates"}
+# Transform the summary table into a dataframe, and rename the variables for convenience
+multi_OR <- data.frame(multi)
+names(multi_OR) <- c("Var", "OR", "LB", "UB")
+
+# Transform the OR's and their CI's into numeric data
+multi_OR$OR <- as.numeric(as.vector(multi_OR$OR))
+multi_OR$LB <- as.numeric(as.vector(multi_OR$LB))
+multi_OR$UB <- as.numeric(as.vector(multi_OR$UB))
+
+# Create a theme for the plot             
+theme_plot <- theme(axis.text.x = element_text(size=14, color="black", angle=90, hjust=1)) +
+              theme(axis.text.y = element_text(size=14, color="black")) +
+              theme(axis.title = element_text(size=15, color="black"))
+
+# Plot the result of multivariate regression
+plot_OR <- ggplot(multi_OR, aes(y=OR, x=Var)) + geom_point(size=3.5) +
+           geom_errorbar(aes(ymin=LB, ymax=UB), width=0, size=1) + ylab("Odds ratio (95% CI)") + xlab("Covariates") +
+           geom_hline(aes(yintercept=1), color="gray60",linetype="dashed", size=1) + theme_plot +
+           ggtitle("Figure 2. Association between coronary heart disease and covariates")
+plot_OR
+```
+
+
+## 4. Summary
+
+Among `r nobs` participants in the study, average age is `r m_age` years (SD `r sd_age`); `r fq_smk[2]` (`r tb_smk[2]`%) participants have ever smoked, and `r fq_chd[2]` (`r tb_chd[2]`%) participants have been diagnosed as coronary heart disease. Based on the results of simple logistic regression, there are significant bivariate associations between coronary heart disease and age in years (OR = `r OR_u_age`; 95% CI: `r OR_CI_u_age[1]`, `r OR_CI_u_age[2]`), normal catecholamine level (OR = `r OR_u_cat`; 95% CI: `r OR_CI_u_cat[1]`, `r OR_CI_u_cat[2]`), smoking (OR = `r OR_u_smk`; 95% CI: `r OR_CI_u_smk[1]`, `r OR_CI_u_smk[2]`), electrocardiogram abnormality (OR = `r OR_u_ecg`; 95% CI: `r OR_CI_u_ecg[1]`, `r OR_CI_u_ecg[2]`) and high blood pressure (OR = `r OR_u_hpt`; 95% CI: `r OR_CI_u_hpt[1]`, `r OR_CI_u_hpt[2]`), respectively. Based on the results of multiple logistic regression, there is significant association between smoking and coronary heart disease, adjusted for normal catecholamine level, electrocardiogram abnormality and high blood pressure (adjusted OR = `r OR_m_smk`; 95% CI: `r OR_CI_m_smk[1]`, `r OR_CI_m_smk[2]`). 
